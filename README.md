@@ -12,7 +12,9 @@ sudo docker run -it swash:801_mpi
 
 ## 3)To run one of the test case to check install
 cd ./testcases/l12bbbar/
+
 swashrun -input l12bbb01.sws -mpi 3 # use 3 processors
+
 swashrun -input l12bbb01.sws -mpi 1 # to use only one processor
 
 ## To run one of your SWASH model 
