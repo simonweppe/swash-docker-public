@@ -1,4 +1,4 @@
-#https://github.com/ikarmpadakis/swash/blob/master/Docker/Dockerfile
+#inspired from https://github.com/ikarmpadakis/swash/blob/master/Docker/Dockerfile
 #
 FROM ubuntu:bionic
 ############################################################################
