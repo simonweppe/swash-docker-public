@@ -1,0 +1,63 @@
+#https://github.com/ikarmpadakis/swash/blob/master/Docker/Dockerfile
+#
+FROM ubuntu:bionic
+############################################################################
+# Install some necessary packages
+############################################################################
+RUN apt-get update \
+    && apt-get install -y \
+        vim \
+        ssh \
+        sudo \
+        wget \
+        software-properties-common \
+        build-essential \
+    make \
+    gfortran;\
+        rm -rf /var/lib/apt/lists/*
+
+# Create a new user called swash
+RUN useradd --user-group --create-home --shell /bin/bash swash ;\
+    echo "swash ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set Working directory
+WORKDIR /home/swash
+############################################################################
+# Install MPICH2 from source
+#https://mpitutorial.com/tutorials/installing-mpich2/
+#https://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2-installguide.pdf
+############################################################################
+RUN wget https://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2.tar.gz
+RUN tar -zxvf mpich-3.3.2.tar.gz
+WORKDIR ./mpich-3.3.2/
+RUN mkdir /home/swash/mpich-install
+RUN ./configure --prefix=/home/swash/mpich-install>&1  | tee c.txt # ** need build-essential installed
+RUN make 2>&1 | tee m.txt
+RUN make install | tee mi.txt
+# update path
+ENV PATH="/home/swash/mpich-install/bin:${PATH}"
+# Re-set Working directory
+WORKDIR /home/swash
+############################################################################
+#Install SWASH from source
+############################################################################
+RUN wget https://swash.sourceforge.io/download/zip/swash-8.01.tar.gz && \
+    tar -zxvf swash-8.01.tar.gz
+WORKDIR ./swash-8.01
+RUN make config && make mpi
+# update path so that exe and scripts are visible
+# see https://swash.sourceforge.io/online_doc/swashimp/node18.html
+ENV PATH="//home/swash/swash-8.01:${PATH}"
+RUN chmod +rx /home/swash/swash-8.01/swashrun
+# Re-set Working directory
+WORKDIR /home/swash
+############################################################################
+#Run a test to check correct install 
+############################################################################
+RUN wget https://swash.sourceforge.io/download/zip/testcases.tar.gz && \ 
+    tar -zxvf testcases.tar.gz
+WORKDIR ./testcases/l33turb
+RUN swashrun -input l33tur02.sws  -mpi 3
+
+# Re-set Working directory
+WORKDIR /home/swash
